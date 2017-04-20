@@ -20,40 +20,6 @@ namespace My {
 
 	namespace Figures {
 
-		class Drawable {
-
-		public:
-
-			Drawable(Program* program) : program(program) {};
-			virtual ~Drawable() {};
-
-			virtual Program* GetProgram() {
-				return program;
-			}
-
-			virtual void SetProgram(Program* program) {
-				this->program = program;
-			}
-
-			virtual void Draw() = 0;
-			virtual void EnableProgram() = 0;
-			virtual void Load() = 0;
-
-			virtual void DisableProgram() {
-				program->Disable();
-			};
-
-		protected:
-
-			friend class DrawablesContainer;
-
-			virtual Drawable* copy() const = 0;
-			virtual Drawable* move() const = 0;
-
-			Program* program;
-
-		};
-
 		class Transformable {
 
 		public:
@@ -109,8 +75,42 @@ namespace My {
 
 		};
 
+		class Drawable : public Transformable {
+
+		public:
+
+			Drawable(Program* program) : program(program) {};
+			virtual ~Drawable() {};
+
+			virtual Program* GetProgram() {
+				return program;
+			}
+
+			virtual void SetProgram(Program* program) {
+				this->program = program;
+			}
+
+			virtual void Draw() = 0;
+			virtual void EnableProgram() = 0;
+			virtual void Load() = 0;
+
+			virtual void DisableProgram() {
+				program->Disable();
+			};
+
+		protected:
+
+			friend class DrawablesContainer;
+
+			virtual Drawable* copy() const = 0;
+			virtual Drawable* move() const = 0;
+
+			Program* program;
+
+		};
+
 		template<typename T>
-		class Figure : public Drawable, public Transformable {
+		class Figure : public Drawable {
 
 		public:
 
@@ -132,17 +132,16 @@ namespace My {
 				points = new T[points_count];
 			};
 
-			Figure(const Figure<T>& other) : Drawable(other), Transformable(other) {
+			Figure(const Figure<T>& other) : Drawable(other) {
 				*this = other;
 			}
 
-			Figure(Figure<T>&& other) : Drawable(other), Transformable(other) {
+			Figure(Figure<T>&& other) : Drawable(std::move(other)) {
 				*this = std::move(other);
 			}
 
 			Figure<T>& operator=(const Figure<T>& other) {
 				Drawable::operator=(other);
-				Transformable::operator=(other);
 				freePoints();
 				copyFrom(other);
 				points = new T[points_count];
@@ -152,7 +151,6 @@ namespace My {
 
 			Figure<T>& operator=(Figure<T>&& other) {
 				Drawable::operator=(std::move(other));
-				Transformable::operator=(std::move(other));
 				std::swap(points, other.points);
 				std::swap(vbo, other.vbo);
 				std::swap(vao, other.vao);
@@ -491,7 +489,7 @@ namespace My {
 
 		};
 
-		class Model : public Drawable, public Transformable, public DrawablesContainer {
+		class Model : public Drawable, public DrawablesContainer {
 
 		public:
 
@@ -507,14 +505,12 @@ namespace My {
 
 			Model& operator=(const Model& other) {
 				Drawable::operator=(other);
-				Transformable::operator=(other);
 				DrawablesContainer::operator=(other);
 				return *this;
 			};
 
 			Model& operator=(Model&& other) {
 				Drawable::operator=(std::move(other));
-				Transformable::operator=(std::move(other));
 				DrawablesContainer::operator=(std::move(other));
 				return *this;
 			}
