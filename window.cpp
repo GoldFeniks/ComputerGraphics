@@ -47,15 +47,6 @@ My::Lights::LightSource& My::Window::GetLightSource(size_t index) {
 	return lights[index];
 }
 
-size_t My::Window::AddDrawable(Figures::Drawable* drawable) {
-	drawables.push_back(drawable);
-	return drawables.size() - 1;
-}
-
-My::Figures::Drawable* My::Window::GetDrawable(size_t index) {
-	return drawables[index];
-}
-
 bool My::Window::IsOpen() {
 	return window->isOpen();
 }
@@ -69,7 +60,7 @@ void My::Window::Display() {
 	glm::mat4 view = GetCurrentCamera().GetViewMatrix();
 	glm::mat4 projection = GetCurrentCamera().GetProjectionMatrix();
 	Camera c = GetCurrentCamera();
-	for (std::vector<Figures::Drawable*>::iterator it = drawables.begin(); it != drawables.end(); ++it) {
+	for (vector_type::iterator it = Begin(); it != End(); ++it) {
 		Program* program = (*it)->GetProgram();
 		program->Projection = projection;
 		program->View = view;

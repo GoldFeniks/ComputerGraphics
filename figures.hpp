@@ -45,6 +45,11 @@ namespace My {
 
 		protected:
 
+			friend class DrawablesContainer;
+
+			virtual Drawable* copy() const = 0;
+			virtual Drawable* move() const = 0;
+
 			Program* program;
 
 		};
@@ -251,10 +256,9 @@ namespace My {
 				type = other.type;
 				material = other.material;
 				loaded = other.loaded;
-				points_count = points_count;
-				Target = Target;
-				Mode = Mode;
-				Usage = Usage;
+				Target = other.Target;
+				Mode = other.Mode;
+				Usage = other.Usage;
 				DiffTexture = other.DiffTexture;
 				SpecTexture = other.SpecTexture;
 				NormTexture = other.NormTexture;
@@ -280,6 +284,13 @@ namespace My {
 				loadTexture(NormTexture, 2, "norm", "has_norm_texture");
 			}
 
+			virtual Drawable* copy() const override {
+				return new Figure<T>(*this);
+			}
+
+			virtual Drawable* move() const override {
+				return new Figure<T>(std::move(*this));
+			}
 
 		}; 
 
@@ -364,16 +375,26 @@ namespace My {
 			GLuint* indices = nullptr;
 			GLsizei indices_count = 0;
 
+			virtual Drawable* copy() const override {
+				return new IndexedFigure(*this);
+			}
+
+			virtual Drawable* move() const override {
+				return new IndexedFigure(std::move(*this));
+			}
 		};
 
 		class DrawablesContainer {
 
 		public:
 
-			typedef std::vector<Drawable*>::iterator iterator;
+			typedef std::vector<Drawable*> vector_type;
 
 			DrawablesContainer() {};
-			DrawablesContainer(const DrawablesContainer& other) = delete;
+			DrawablesContainer(const DrawablesContainer& other) {
+				*this = other;
+			};
+
 			DrawablesContainer(DrawablesContainer&& other) {
 				*this = std::move(other);
 			};
@@ -381,7 +402,14 @@ namespace My {
 				deleteDrawables();
 			}
 
-			DrawablesContainer& operator=(const DrawablesContainer& other) = delete;
+			DrawablesContainer& operator=(const DrawablesContainer& other) {
+				deleteDrawables();
+				drawables.resize(other.Size());
+				for (size_t i = 0; i < other.Size(); ++i)
+					drawables[i] = other.drawables[i]->copy();
+				return *this;
+			};
+
 			DrawablesContainer& operator=(DrawablesContainer&& other) {
 				std::swap(drawables, other.drawables);
 				return *this;
@@ -398,7 +426,6 @@ namespace My {
 				drawables.resize(source.size());
 				for (size_t i = 0; i < source.size(); ++i)
 					drawables[i] = new T(source[i]);
-				LoadFigures();
 			}
 
 			template<typename T>
@@ -407,22 +434,16 @@ namespace My {
 				drawables.resize(source.size());
 				for (size_t i = 0; i < source.size(); ++i)
 					drawables[i] = new T(std::move(source[i]));
-				LoadFigures();
 			}
 
-			template<typename T>
-			void AddDrawable(const T* drawable) {
-				drawables.push_back(new T(*drawable));
+			void AddDrawable(Drawable& drawable) {
+				drawables.push_back(drawable.copy());
+				drawables.back()->Load();
 			}
 
-			template<typename T>
-			void AddDrawable(const T& drawable) {
-				drawables.push_back(new T(drawable));
-			}
-
-			template<typename T>
-			void AddDrawable(T&& drawable) {
-				drawables.push_back(new T(std::move(drawable)));
+			void AddDrawable(Drawable&& drawable) {
+				drawables.push_back(drawable.move());
+				drawables.back()->Load();
 			}
 
 			void DeleteDrawable(size_t i) {
@@ -432,19 +453,19 @@ namespace My {
 			}
 
 			void LoadFigures() {
-				for (std::vector<Drawable*>::iterator it = drawables.begin(); it != drawables.end(); ++it)
+				for (vector_type::iterator it = Begin(); it != End(); ++it)
 					(*it)->Load();
 			}
 
-			iterator Begin() {
+			vector_type::iterator Begin() {
 				return drawables.begin();
 			}
 
-			iterator End() {
+			vector_type::iterator End() {
 				return drawables.end();
 			}
 
-			std::vector<Drawable*> GetDrawables() {
+			std::vector<Drawable*>& GetDrawables() {
 				return drawables;
 			}
 
@@ -452,7 +473,7 @@ namespace My {
 				return drawables[i];
 			}
 
-			size_t Size() {
+			size_t Size() const {
 				return drawables.size();
 			}
 
@@ -475,12 +496,22 @@ namespace My {
 		public:
 
 			Model(Program* program) : Drawable(program) {};
-			Model(const Model&) = delete;
+
+			Model(const Model& other) : Drawable(other) {
+				*this = other;
+			};
+
 			Model(Model&& other) : Drawable(std::move(other)) {
 				*this = std::move(other);
 			}
 
-			Model& operator=(const Model&) = delete;
+			Model& operator=(const Model& other) {
+				Drawable::operator=(other);
+				Transformable::operator=(other);
+				DrawablesContainer::operator=(other);
+				return *this;
+			};
+
 			Model& operator=(Model&& other) {
 				Drawable::operator=(std::move(other));
 				Transformable::operator=(std::move(other));
@@ -494,11 +525,23 @@ namespace My {
 			}			
 
 			virtual void Draw() override {
-				for (iterator it = drawables.begin(); it != drawables.end(); ++it)
+				for (vector_type::iterator it = Begin(); it != End(); ++it)
 					(*it)->Draw();
 			}
 
-			virtual void Load() override {};
+			virtual void Load() override {
+				LoadFigures();
+			};
+
+		protected:
+
+			virtual Drawable* copy() const override {
+				return new Model(*this);
+			}
+
+			virtual Drawable* move() const override {
+				return new Model(std::move(*this));
+			}
 
 		};
 

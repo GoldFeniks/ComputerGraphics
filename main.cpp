@@ -50,7 +50,7 @@ int main() {
 	My::Figures::Figure<My::Points::Point3RGB<GLfloat>> dot(&program, 1);
 	dot.SetPoints({ {0, 0, 0, 1, 1, 1} });
 	dot.Mode = GL_POINTS;
-	window.AddDrawable((My::Figures::Drawable*)&dot);
+	window.AddDrawable(dot);
 	bottom_side.Rotate(0.5, glm::vec3(1, 0, 0));
 	My::Figures::IndexedFigure<My::Points::Point3RGB<GLfloat>> fig(&program, 3, 3);
 	fig.SetPoints({
@@ -77,8 +77,9 @@ int main() {
 	//My::Scene scene2("test/models/PLY/cube.ply");
 	auto vec1 = scene.GetFigures<My::Points::Point3TexNormTangents<GLfloat>>(&program);
 	auto model = scene.GetModel<My::Points::Point3TexNormTangents<GLfloat>>(&program);
+	window.AddDrawable(model);
 	model.Rotate(-M_PI / 2, glm::vec3(1, 0, 0));
-	window.AddDrawable((My::Figures::Drawable*)&model);
+	//window.AddDrawable(model);
 	auto fig1 = vec1[vec1.size() - 2];
 	//fig1.Load();
 	auto fig2 = vec1.back();

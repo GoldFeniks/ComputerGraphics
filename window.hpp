@@ -10,7 +10,7 @@
 
 namespace My {
 
-	class Window {
+	class Window : public Figures::DrawablesContainer {
 
 	public:
 
@@ -23,8 +23,6 @@ namespace My {
 		Camera& GetCurrentCamera();
 		void AddLightSource(Lights::LightSource);
 		Lights::LightSource& GetLightSource(size_t);
-		size_t AddDrawable(Figures::Drawable*);
-		Figures::Drawable* GetDrawable(size_t);
 		bool IsOpen();
 		bool PollEvent(sf::Event&);
 		void Display();
@@ -36,7 +34,6 @@ namespace My {
 	private:
 
 		sf::Window* window;
-		std::vector<Figures::Drawable*> drawables;
 		std::vector<Camera> cameras;
 		std::vector<Lights::LightSource> lights;
 		size_t camera_index = 0;
