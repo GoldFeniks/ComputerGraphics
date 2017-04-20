@@ -90,9 +90,11 @@ namespace My {
 				pMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color);
 				material.Specular = { color.r, color.b, color.g, 1 };
 				pMaterial->Get(AI_MATKEY_SHININESS, material.Shininess);
-				figure.DiffTexture = scene->diff_textures[mesh->mMaterialIndex];
-				figure.SpecTexture = scene->spec_textures[mesh->mMaterialIndex];
-				figure.NormTexture = scene->norm_textures[mesh->mMaterialIndex];
+				if (My::Points::Size<point_type>::TextureSize) {
+					figure.DiffTexture = scene->diff_textures[mesh->mMaterialIndex];
+					figure.SpecTexture = scene->spec_textures[mesh->mMaterialIndex];
+					figure.NormTexture = scene->norm_textures[mesh->mMaterialIndex];
+				}
 				return figure;
 			}
 
