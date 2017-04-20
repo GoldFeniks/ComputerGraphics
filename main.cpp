@@ -35,10 +35,7 @@ int main() {
 	window.GetLightSource(1).GetParameters().SpotCutoff = 45;
 	window.GetLightSource(1).GetParameters().SpotExponent = 15;
 	window.GetLightSource(1).GetParameters().LinearAttenuation = 0.1;
-	My::Program program;
-	program.SetShader("shaders/vertex.glsl", GL_VERTEX_SHADER);
-	program.SetShader("shaders/fragment.glsl", GL_FRAGMENT_SHADER);
-	program.Link();
+	My::Program program("shaders/vertex.glsl", "shaders/fragment.glsl");
 	My::Figures::Figure<My::Points::Point3RGB<GLfloat>> f(&program, 0);
 	My::Figures::Figure<My::Points::Point3RGB<GLfloat>> f1 = std::move(f);
 	My::Figures::Triangle3RGB<GLfloat> bottom_side(&program);

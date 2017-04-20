@@ -36,6 +36,7 @@ namespace My {
 			ShininessUniform = "shininess";
 
 		Program() : Id(glCreateProgram()) {};
+		Program(std::string vertex_shader, std::string fragment_shader);
 		Program(const Program&) = delete;
 		Program(Program&& other);
 

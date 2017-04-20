@@ -3,6 +3,12 @@
 #include "utils.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
+My::Program::Program(std::string vertex_shader, std::string fragment_shader) : Id(glCreateProgram()) {
+	SetShader(vertex_shader, GL_VERTEX_SHADER);
+	SetShader(fragment_shader, GL_FRAGMENT_SHADER);
+	Link();
+}
+
 My::Program::Program(Program&& other) {
 	*this = std::move(other);
 }
