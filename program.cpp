@@ -3,6 +3,10 @@
 #include "utils.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
+My::Program::Program(Program&& other) {
+	*this = std::move(other);
+}
+
 void My::Program::SetShader(std::string path, GLuint type) {
 	std::string s = My::ReadFile(path);
 	const char* sourseCode = s.c_str();
@@ -51,6 +55,15 @@ bool My::Program::IsOk() {
 	return State == States::OK;
 }
 
+GLint My::Program::GetUniformLocation(std::string name) {
+	return glGetUniformLocation(Id, name.c_str());
+}
+
 GLint My::Program::GetAttributeLocation(std::string name) {
 	return glGetAttribLocation(Id, name.c_str());
+}
+
+My::Program& My::Program::operator=(Program&& other) {
+	std::swap(Id, other.Id);
+	return *this;
 }

@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>
 #include <string>
+#include <utility>
 
 namespace My {
 
@@ -35,15 +36,22 @@ namespace My {
 			ShininessUniform = "shininess";
 
 		Program() : Id(glCreateProgram()) {};
+		Program(const Program&) = delete;
+		Program(Program&& other);
+
+		Program& operator=(const Program&) = delete;
+		Program& operator=(Program&& other);
+
 		~Program() { glDeleteProgram(Id); };
 	
-		void SetShader(std::string path, GLuint type);
+		void SetShader(std::string, GLuint);
 		void LoadMVP();
 		void Link();
 		void Enable();
 		static void Disable();
 		bool IsOk();
-		GLint GetAttributeLocation(std::string name);
+		GLint GetUniformLocation(std::string);
+		GLint GetAttributeLocation(std::string);
 
 	};
 
