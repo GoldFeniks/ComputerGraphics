@@ -19,7 +19,7 @@ namespace My {
 		void Bind(GLenum = GL_ARRAY_BUFFER);
 		static void Unbind(GLenum = GL_ARRAY_BUFFER);
 
-		void SetVertexAttribPointer(GLuint, GLuint, GLenum, GLboolean, GLuint, GLvoid*);
+		void SetVertexAttribPointer(GLuint, GLint, GLenum, GLboolean, GLuint, GLvoid*);
 		void BufferData(GLenum, GLsizeiptr, GLvoid*, GLenum);
 
 	private:

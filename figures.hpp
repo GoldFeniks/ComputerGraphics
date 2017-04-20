@@ -242,12 +242,12 @@ namespace My {
 			void loadTexture(GLuint texture, size_t index, std::string texture_name, std::string bool_name) {
 				if (texture) {
 					glActiveTexture(GL_TEXTURE0 + index);
-					glUniform1i(glGetUniformLocation(program->Id, texture_name.c_str()), index);
-					glUniform1i(glGetUniformLocation(program->Id, bool_name.c_str()), 1);
+					glUniform1i(program->GetUniformLocation(texture_name.c_str()), index);
+					glUniform1i(program->GetUniformLocation(bool_name.c_str()), 1);
 					glBindTexture(GL_TEXTURE_2D, texture);
 				}
 				else {
-					glUniform1i(glGetUniformLocation(program->Id, bool_name.c_str()), 0);
+					glUniform1i(program->GetUniformLocation(bool_name.c_str()), 0);
 				}
 			}
 

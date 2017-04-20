@@ -25,7 +25,7 @@ void My::VBO::Unbind(GLenum target) {
 	glBindBuffer(target, 0);
 }
 
-void My::VBO::SetVertexAttribPointer(GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, GLvoid* pointer) {
+void My::VBO::SetVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLuint stride, GLvoid* pointer) {
 	Bind();
 	glVertexAttribPointer(index, size, type, normalized, stride, pointer);
 	glEnableVertexAttribArray(index);
