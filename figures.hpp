@@ -169,12 +169,12 @@ namespace My {
 				vao.Bind();
 				vbo.BufferData(Target, sizeof(point_type) * points_count, points, Usage);
 				size_t offset = 0;
-				setAttribPointer("position", Points::Size<point_type>::PointSize, offset);
-				setAttribPointer("in_color", Points::Size<point_type>::ColorSize, offset);
-				setAttribPointer("vertex_normal", Points::Size<point_type>::NormalSize, offset);
-				setAttribPointer("texture_position", Points::Size<point_type>::TextureSize, offset);
-				setAttribPointer("vertex_tangent", Points::Size<point_type>::TangentSize, offset);
-				setAttribPointer("vertex_bitangent", Points::Size<point_type>::BitangentSize, offset);
+				setAttribPointer(program->PointAttribute, Points::Size<point_type>::PointSize, offset);
+				setAttribPointer(program->ColorAttribute, Points::Size<point_type>::ColorSize, offset);
+				setAttribPointer(program->NormalAttribute, Points::Size<point_type>::NormalSize, offset);
+				setAttribPointer(program->TextureAttribute, Points::Size<point_type>::TextureSize, offset);
+				setAttribPointer(program->TangentAttribute, Points::Size<point_type>::TangentSize, offset);
+				setAttribPointer(program->BitangentAttribute, Points::Size<point_type>::BitangentSize, offset);
 				vao.Unbind();
 				loaded = true;
 			}
@@ -274,14 +274,14 @@ namespace My {
 				glMaterialfv(GL_FRONT, GL_AMBIENT, (GLfloat*)&material.Ambient);
 				glMaterialfv(GL_FRONT, GL_DIFFUSE, (GLfloat*)&material.Diffuse);
 				glMaterialfv(GL_FRONT, GL_SPECULAR, (GLfloat*)&material.Specular);
-				glUniform1f(glGetUniformLocation(program->Id, "shininess"), material.Shininess);
+				glUniform1f(program->GetUniformLocation(program->ShininessUniform), material.Shininess);
 			}
 
 
 			void loadTextures() {
-				loadTexture(DiffTexture, 0, "diff", "has_diff_texture");
-				loadTexture(SpecTexture, 1, "spec", "has_spec_texture");
-				loadTexture(NormTexture, 2, "norm", "has_norm_texture");
+				loadTexture(DiffTexture, 0, program->DiffuseTextureAttribute, program->HasDiffuseTextureAttribute);
+				loadTexture(SpecTexture, 1, program->SpecularTextureAttribute, program->HasSpecularTextureAttribute);
+				loadTexture(NormTexture, 2, program->NormalAttribute, program->HasNormalTextureAttribute);
 			}
 
 			virtual Drawable* copy() const override {
