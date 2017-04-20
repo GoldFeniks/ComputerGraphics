@@ -88,6 +88,7 @@ namespace My {
 
 			virtual void SetProgram(Program* program) {
 				this->program = program;
+				Load();
 			}
 
 			virtual void Draw() = 0;
