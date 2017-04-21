@@ -20,6 +20,41 @@ namespace My {
 
 	namespace Figures {
 
+		class Drawable {
+
+		public:
+
+			Drawable(Program* program) : program(program) {};
+			virtual ~Drawable() {};
+
+			virtual Program* GetProgram() {
+				return program;
+			}
+
+			virtual void SetProgram(Program* program) {
+				this->program = program;
+				Load();
+			}
+
+			virtual void Draw() = 0;
+			virtual void EnableProgram() = 0;
+			virtual void Load() = 0;
+
+			virtual void DisableProgram() {
+				program->Disable();
+			};
+
+		protected:
+
+			friend class DrawablesContainer;
+
+			virtual Drawable* copy() const = 0;
+			virtual Drawable* move() = 0;
+
+			Program* program;
+
+		};
+
 		class Transformable {
 
 		public:
@@ -75,56 +110,21 @@ namespace My {
 
 		};
 
-		class Drawable : public Transformable {
+		struct Material {
 
-		public:
-
-			Drawable(Program* program) : program(program) {};
-			virtual ~Drawable() {};
-
-			virtual Program* GetProgram() {
-				return program;
-			}
-
-			virtual void SetProgram(Program* program) {
-				this->program = program;
-				Load();
-			}
-
-			virtual void Draw() = 0;
-			virtual void EnableProgram() = 0;
-			virtual void Load() = 0;
-
-			virtual void DisableProgram() {
-				program->Disable();
-			};
-
-		protected:
-
-			friend class DrawablesContainer;
-
-			virtual Drawable* copy() const = 0;
-			virtual Drawable* move() const = 0;
-
-			Program* program;
+			My::Vectors::Vector4<GLfloat> Ambient = { 0.2, 0.2, 0.2, 1 }, Diffuse = { 0.8, 0.8, 0.8, 1 }, Specular = { 0.2, 0.2, 0.2, 1 };
+			GLfloat Shininess = 0.5;
 
 		};
 
 		template<typename T>
-		class Figure : public Drawable {
+		class Figure : public Drawable, public Transformable, public Material {
 
 		public:
 
 			typedef T point_type;
 			typedef typename T::value_type value_type;
 			typedef size_t index_type;
-
-			struct Material {
-
-				My::Vectors::Vector4<GLfloat> Ambient = { 0.2, 0.2, 0.2, 1 }, Diffuse = { 0.8, 0.8, 0.8, 1 }, Specular = { 0.2, 0.2, 0.2, 1 };
-				GLfloat Shininess = 0.5;
-
-			};
 
 			GLenum Target = GL_ARRAY_BUFFER, Mode = GL_TRIANGLES, Usage = GL_STATIC_DRAW;
 			GLuint DiffTexture = 0, SpecTexture = 0, NormTexture = 0;
@@ -143,6 +143,8 @@ namespace My {
 
 			Figure<T>& operator=(const Figure<T>& other) {
 				Drawable::operator=(other);
+				Transformable::operator=(other);
+				Material::operator=(other);
 				freePoints();
 				copyFrom(other);
 				points = new T[points_count];
@@ -152,6 +154,8 @@ namespace My {
 
 			Figure<T>& operator=(Figure<T>&& other) {
 				Drawable::operator=(std::move(other));
+				Transformable::operator=(std::move(other));
+				Material::operator=(std::move(other));
 				std::swap(points, other.points);
 				std::swap(vbo, other.vbo);
 				std::swap(vao, other.vao);
@@ -209,10 +213,6 @@ namespace My {
 				vao.Unbind();
 			}
 
-			Material& GetMaterial() {
-				return material;
-			}
-
 			point_type* GetPoints() {
 				return points;
 			}
@@ -226,7 +226,6 @@ namespace My {
 			GLenum type = Types::Type<value_type>::GLType;
 			VAO vao;
 			VBO vbo;
-			Material material;
 			bool loaded = false;
 			point_type* points = nullptr;
 			index_type points_count = 0;
@@ -253,7 +252,6 @@ namespace My {
 			void copyFrom(const Figure<T>& other) {
 				points_count = other.points_count;
 				type = other.type;
-				material = other.material;
 				loaded = other.loaded;
 				Target = other.Target;
 				Mode = other.Mode;
@@ -270,10 +268,10 @@ namespace My {
 			}
 
 			void loadMaterial() {
-				glMaterialfv(GL_FRONT, GL_AMBIENT, (GLfloat*)&material.Ambient);
-				glMaterialfv(GL_FRONT, GL_DIFFUSE, (GLfloat*)&material.Diffuse);
-				glMaterialfv(GL_FRONT, GL_SPECULAR, (GLfloat*)&material.Specular);
-				glUniform1f(program->GetUniformLocation(program->ShininessUniform), material.Shininess);
+				glMaterialfv(GL_FRONT, GL_AMBIENT, (GLfloat*)&Ambient);
+				glMaterialfv(GL_FRONT, GL_DIFFUSE, (GLfloat*)&Diffuse);
+				glMaterialfv(GL_FRONT, GL_SPECULAR, (GLfloat*)&Specular);
+				glUniform1f(program->GetUniformLocation(program->ShininessUniform), Shininess);
 			}
 
 
@@ -287,7 +285,7 @@ namespace My {
 				return new Figure<T>(*this);
 			}
 
-			virtual Drawable* move() const override {
+			virtual Drawable* move() override {
 				return new Figure<T>(std::move(*this));
 			}
 
@@ -378,7 +376,7 @@ namespace My {
 				return new IndexedFigure(*this);
 			}
 
-			virtual Drawable* move() const override {
+			virtual Drawable* move() override {
 				return new IndexedFigure(std::move(*this));
 			}
 		};
@@ -435,6 +433,11 @@ namespace My {
 					drawables[i] = new T(std::move(source[i]));
 			}
 
+			void AddDrawable(Drawable* drawable) {
+				drawables.push_back(drawable);
+				drawables.back()->Load();
+			}
+
 			void AddDrawable(Drawable& drawable) {
 				drawables.push_back(drawable.copy());
 				drawables.back()->Load();
@@ -443,6 +446,11 @@ namespace My {
 			void AddDrawable(Drawable&& drawable) {
 				drawables.push_back(drawable.move());
 				drawables.back()->Load();
+			}
+
+			template<typename T>
+			T* GetDrawableAs(size_t index) {
+				static_cast<T*>(drawables[index]);
 			}
 
 			void DeleteDrawable(size_t i) {
@@ -490,7 +498,7 @@ namespace My {
 
 		};
 
-		class Model : public Drawable, public DrawablesContainer {
+		class Model : public Drawable, public DrawablesContainer, public Transformable {
 
 		public:
 
@@ -506,12 +514,14 @@ namespace My {
 
 			Model& operator=(const Model& other) {
 				Drawable::operator=(other);
+				Transformable::operator=(other);
 				DrawablesContainer::operator=(other);
 				return *this;
 			};
 
 			Model& operator=(Model&& other) {
 				Drawable::operator=(std::move(other));
+				Transformable::operator=(std::move(other));
 				DrawablesContainer::operator=(std::move(other));
 				return *this;
 			}
@@ -536,7 +546,7 @@ namespace My {
 				return new Model(*this);
 			}
 
-			virtual Drawable* move() const override {
+			virtual Drawable* move() override {
 				return new Model(std::move(*this));
 			}
 

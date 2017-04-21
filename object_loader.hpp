@@ -80,16 +80,15 @@ namespace My {
 					for (unsigned int j = 0; j < 3; ++j)
 						*(index + j) = mesh->mFaces[i].mIndices[j];
 				}
-				typename figure_type::Material& material = figure.GetMaterial();
 				aiMaterial* pMaterial = scene->scene->mMaterials[mesh->mMaterialIndex];
 				aiColor3D color;
 				pMaterial->Get(AI_MATKEY_COLOR_AMBIENT, color);
-				material.Ambient = { color.r, color.b, color.g, 1 };
+				figure.Ambient = { color.r, color.b, color.g, 1 };
 				pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-				material.Diffuse = { color.r, color.b, color.g, 1 };
+				figure.Diffuse = { color.r, color.b, color.g, 1 };
 				pMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color);
-				material.Specular = { color.r, color.b, color.g, 1 };
-				pMaterial->Get(AI_MATKEY_SHININESS, material.Shininess);
+				figure.Specular = { color.r, color.b, color.g, 1 };
+				pMaterial->Get(AI_MATKEY_SHININESS, figure.Shininess);
 				if (My::Points::Size<point_type>::TextureSize) {
 					figure.DiffTexture = scene->diff_textures[mesh->mMaterialIndex];
 					figure.SpecTexture = scene->spec_textures[mesh->mMaterialIndex];
