@@ -450,7 +450,11 @@ namespace My {
 
 			template<typename T>
 			T* GetDrawableAs(size_t index) {
-				static_cast<T*>(drawables[index]);
+				return dynamic_cast<T*>(drawables[index]);
+			}
+
+			Drawable* GetDrawbale(size_t index) {
+				return drawables[index];
 			}
 
 			void DeleteDrawable(size_t i) {

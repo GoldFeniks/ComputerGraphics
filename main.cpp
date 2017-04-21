@@ -29,8 +29,8 @@ int main() {
 	window.GetLightSource(0).GetParameters().Ambient = { 1.2f, 1.2f, 1.2f, 1 };
 	window.AddLightSource(My::Lights::LightSource::Spot());
 	window.GetLightSource(1).GetParameters().Position = { 0, 0, 1, 1 };
-	window.GetLightSource(1).GetParameters().Diffuse = { 3, 3, 3, 1 };
-	window.GetLightSource(1).GetParameters().Specular = { 3, 3, 3, 1 };
+	window.GetLightSource(1).GetParameters().Diffuse = { 1, 1, 1, 1 };
+	window.GetLightSource(1).GetParameters().Specular = { 1, 1, 1, 1 };
 	window.GetLightSource(1).GetParameters().SpotDirection = { 1, 1, 1 };
 	window.GetLightSource(1).GetParameters().SpotCutoff = 45;
 	window.GetLightSource(1).GetParameters().SpotExponent = 15;
@@ -38,6 +38,9 @@ int main() {
 	My::Program program("shaders/vertex.glsl", "shaders/fragment.glsl");
 	My::Scene human("test/models/BLEND/HUMAN.blend");
 	window.AddDrawable(human.GetModel<My::Points::Point3Norm<GLfloat>>(&program));
+	window.GetDrawableAs<My::Figures::Model>(0)->GetDrawableAs<My::Figures::Material>(0)->Diffuse = { 1, 0, 0, 1 };
+	window.GetDrawableAs<My::Figures::Model>(0)->GetDrawableAs<My::Figures::Material>(0)->Specular = { 0, 0, 1, 1 };
+	window.GetDrawableAs<My::Figures::Transformable>(0)->Rotate(-M_PI / 2, glm::vec3(1, 0, 0));
 	sf::Clock clock;
 	c_time = clock.getElapsedTime().asMilliseconds();
 	while (window.IsOpen()) {
