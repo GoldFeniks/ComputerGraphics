@@ -12,6 +12,8 @@
 #include "window.hpp"
 #include <utility>
 #include <initializer_list>
+#include <thread>
+#include <future>
 
 namespace My {
 
@@ -99,6 +101,8 @@ namespace My {
 
 		};
 
+		Scene() = delete;
+
 		Scene(std::string file_path) {
 			importer = new Assimp::Importer;
 			scene = importer->ReadFile(file_path.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace
@@ -109,15 +113,12 @@ namespace My {
 			loadTextures();
 		}
 
-		Scene& operator=(const Scene& other) {
-			importer = new Assimp::Importer(*other.importer);
-			scene = other.scene;
-			dir = other.dir;
-			diff_textures = other.diff_textures;
-			spec_textures = other.spec_textures;
-			norm_textures = other.norm_textures;
+		Scene(const Scene& other) = delete;
+		Scene(Scene&& other) {
+			*this = std::move(other);
 		}
 
+		Scene& operator=(const Scene& other) = delete;
 		Scene& operator=(Scene&& other) {
 			std::swap(importer, other.importer);
 			std::swap(scene, other.scene);
@@ -125,6 +126,7 @@ namespace My {
 			std::swap(diff_textures, other.diff_textures);
 			std::swap(spec_textures, other.spec_textures);
 			std::swap(norm_textures, other.norm_textures);
+			return *this;
 		}
 
 		~Scene() {
@@ -143,12 +145,28 @@ namespace My {
 			return result;
 		}
 
+		static std::vector<Scene> LoadScenes(std::vector<std::string> files) {
+			std::vector<std::future<Scene*>> futures(files.size());
+			std::vector<Scene> result;
+			for (size_t i = 0; i < files.size(); ++i)
+				futures[i] = std::async(std::launch::async, construct, files[i]);
+			for (size_t i = 0; i < futures.size(); ++i) {
+				futures[i].wait();
+				result.push_back(std::move(*(futures[i].get())));
+			}
+			return result;
+		}
+
 	private:
 
-		Assimp::Importer* importer;
-		const aiScene* scene;
+		Assimp::Importer* importer = nullptr;
+		const aiScene* scene = nullptr;
 		std::string dir;
 		std::vector<GLuint> diff_textures, spec_textures, norm_textures;
+
+		static Scene* construct(std::string file_name) {
+			return new Scene(file_name);
+		}
 
 		void loadTextures() {
 			diff_textures.resize(scene->mNumMaterials, 0);
