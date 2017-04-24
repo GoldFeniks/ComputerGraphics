@@ -22,7 +22,7 @@ void main() {
     gl_Position = projection * view * model * vec4(position, 1);
     vertex_pos = vec3(model * vec4(position, 1));
     mat3 normal_matrix = mat3(transpose(inverse(model)));
-    normal = normal_matrix * vertex_normal;
+    normal = normalize(normal_matrix * vertex_normal);
     texture_pos = texture_position;
     vec3 T = normalize(normal_matrix * vertex_tangent);
     vec3 B = normalize(normal_matrix * vertex_bitangent);

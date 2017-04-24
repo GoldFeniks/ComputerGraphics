@@ -438,7 +438,7 @@ namespace My {
 				drawables.back()->Load();
 			}
 
-			void AddDrawable(Drawable& drawable) {
+			void AddDrawable(const Drawable& drawable) {
 				drawables.push_back(drawable.copy());
 				drawables.back()->Load();
 			}

@@ -36,7 +36,7 @@ void main() {
     }
     for (int i = 0; i < light_count; ++i) {
         if (length(gl_LightSource[i].position) == 0) {
-            final_color += gl_FrontLightProduct[i].ambient * texdiff + gl_FrontLightProduct[i].ambient * proc_color;
+            final_color += gl_FrontLightProduct[i].ambient * texdiff + gl_FrontLightProduct[i].ambient;
         } else {
             vec3 light_dir;
             float attenuation = 1;

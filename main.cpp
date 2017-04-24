@@ -19,15 +19,39 @@ float plane_y = -std::sqrtf(3) / 2, plane_x = -5, plane_z = -5;
 int lines_count = 20;
 float sensativity = 0.5;
 
+std::vector<My::Figures::Transformable*> light_objects;
+
+void makeModelBrightAgain(My::Figures::Model* model) {
+	for (size_t i = 0; i < model->Size(); ++i) {
+		auto material = model->GetDrawableAs<My::Figures::Material>(i);
+		material->Ambient = { 0.1f, 0.1f, 0.1f, 1 };
+		material->Diffuse = { 3, 3, 3, 1 };
+		material->Specular = { 3, 3, 3, 1 };
+	}
+}
+
+void setAmbient(My::Figures::Model* model, My::Vectors::Vector4<GLfloat> amb = { 0.1f, 0.1f, 0.1f, 1 }) {
+	for (size_t i = 0; i < model->Size(); ++i)
+		model->GetDrawableAs<My::Figures::Material>(i)->Ambient = amb;
+}
+
+void setShininess(My::Figures::Model* model, GLfloat shn = 64) {
+	for (size_t i = 0; i < model->Size(); ++i)
+		model->GetDrawableAs<My::Figures::Material>(i)->Shininess = shn;
+}
+
+
 int main() {
 	My::Window window(1500, 1500, "Triangle", sf::Style::Default, sf::ContextSettings(24, 8, 0, 4, 4));
 	window.GetCurrentCamera().SetProjection(glm::radians(60.f), window.Ratio(), 0.1f, 10000.f);
-	window.GetCurrentCamera().Setup(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0));
+	window.GetCurrentCamera().Setup(glm::vec3(0, 0, 15), glm::vec3(0, 0, 0));
 	window.AddCamera(My::Camera(glm::vec3(0, 3, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 1)));
 	window.GetCamera(1).SetProjection(glm::radians(60.f), window.Ratio(), 0.1f, 100.f);
 	window.AddLightSource(My::Lights::LightSource::Ambient());
-	window.GetLightSource(0).GetParameters().Ambient = { 1.2f, 1.2f, 1.2f, 1 };
+	light_objects.push_back(nullptr);
+	window.GetLightSource(0).GetParameters().Ambient = { 0.1f, 0.1f, 0.1f, 1 };
 	window.AddLightSource(My::Lights::LightSource::Spot());
+	light_objects.push_back(nullptr);
 	window.GetLightSource(1).GetParameters().Position = { 0, 0, 1, 1 };
 	window.GetLightSource(1).GetParameters().Diffuse = { 1, 1, 1, 1 };
 	window.GetLightSource(1).GetParameters().Specular = { 1, 1, 1, 1 };
@@ -36,11 +60,104 @@ int main() {
 	window.GetLightSource(1).GetParameters().SpotExponent = 15;
 	window.GetLightSource(1).GetParameters().LinearAttenuation = 0.1;
 	My::Program program("shaders/vertex.glsl", "shaders/fragment.glsl");
-	My::Scene human("test/models/BLEND/HUMAN.blend");
-	window.AddDrawable(human.GetModel<My::Points::Point3Norm<GLfloat>>(&program));
-	window.GetDrawableAs<My::Figures::Model>(0)->GetDrawableAs<My::Figures::Material>(0)->Diffuse = { 1, 0, 0, 1 };
-	window.GetDrawableAs<My::Figures::Model>(0)->GetDrawableAs<My::Figures::Material>(0)->Specular = { 0, 0, 1, 1 };
-	window.GetDrawableAs<My::Figures::Transformable>(0)->Rotate(-M_PI / 2, glm::vec3(1, 0, 0));
+	auto scenes = My::Scene::LoadScenes({ "test/models/BLEND/HUMAN.blend", "test/models/PLY/cube.ply", "test/models/Collada/sphere.dae", "test/dodecahedron_round.stl", "nanosuit/nanosuit.obj" });
+	window.AddDrawable(scenes[1].GetModel<My::Points::Point3Norm<GLfloat>>(&program));
+	setAmbient(window.GetDrawableAs<My::Figures::Model>(0));
+	setShininess(window.GetDrawableAs<My::Figures::Model>(0), 1);
+	auto tr = window.GetDrawableAs<My::Figures::Transformable>(0);
+	tr->Scale(glm::vec3(10, 10, 10));
+	tr->Translate(glm::vec3(-5, -8, 0));
+	window.AddDrawable(scenes[0].GetModel<My::Points::Point3Norm<GLfloat>>(&program));
+	setAmbient(window.GetDrawableAs<My::Figures::Model>(1));
+	tr = window.GetDrawableAs<My::Figures::Transformable>(1);
+	tr->Rotate(-M_PI / 2, glm::vec3(1, 0, 0));
+	tr->Translate(glm::vec3(-4, 7.2, 1));
+	tr->Rotate(M_PI / 4, glm::vec3(0, 0, 1));
+	window.AddDrawable(*window[1]);
+	tr = window.GetDrawableAs<My::Figures::Transformable>(2);
+	tr->Rotate(-M_PI / 2, glm::vec3(0, 0, 1));
+	tr->Translate(glm::vec3(8, 0, 0));
+	window.AddDrawable(*window[1]);
+	tr = window.GetDrawableAs<My::Figures::Transformable>(3);
+	tr->Rotate(M_PI / 2, glm::vec3(0, 0, 1));
+	tr->Translate(glm::vec3(0, 0, 8));
+	window.AddDrawable(*window[1]);
+	tr = window.GetDrawableAs<My::Figures::Transformable>(4);
+	tr->Rotate(M_PI, glm::vec3(0, 0, 1));
+	tr->Translate(glm::vec3(8, 0, 8));
+	window.AddDrawable(scenes[2].GetModel<My::Points::Point3Norm<GLfloat>>(&program));
+	setAmbient(window.GetDrawableAs<My::Figures::Model>(5), { 1, 0, 0.5, 1});
+	tr = window.GetDrawableAs<My::Figures::Transformable>(5);
+	tr->Scale(glm::vec3(0.2, 0.2, 0.2));
+	tr->Translate(glm::vec3(-2, 8, 3));
+	window.AddLightSource(My::Lights::LightSource::Point());
+	window.GetLightSource(2).GetParameters().Position = { -2, 8, 3, 1 };
+	window.GetLightSource(2).GetParameters().Diffuse = { 1, 0, 1.5, 1 };
+	window.GetLightSource(2).GetParameters().Specular = { 1, 0, 1.5, 1 };
+	window.GetLightSource(2).GetParameters().LinearAttenuation = 0.5;
+	light_objects.push_back(tr);
+	window.AddDrawable(*window[5]);
+	setAmbient(window.GetDrawableAs<My::Figures::Model>(6), { 0.2f, 1, 0.2f, 1 });
+	tr = window.GetDrawableAs<My::Figures::Transformable>(6);
+	tr->Translate(glm::vec3(4, 0, 4));
+	window.AddLightSource(My::Lights::LightSource::Point());
+	window.GetLightSource(3).GetParameters().Position = { 2, 8, 7, 1 };
+	window.GetLightSource(3).GetParameters().Diffuse = { 0.2f, 1, 0.2f, 1 };
+	window.GetLightSource(3).GetParameters().Specular = { 0.2f, 1, 0.2f, 1 };
+	window.GetLightSource(3).GetParameters().LinearAttenuation = 0.5;
+	light_objects.push_back(tr);
+	window.AddLightSource(My::Lights::LightSource::Direction());
+	window.GetLightSource(4).GetParameters().Position = { -1, -1, -1, 0 };
+	window.GetLightSource(4).GetParameters().Diffuse = { 0, 0, 0.2f, 1 };
+	window.GetLightSource(4).GetParameters().Specular = { 0, 0, 0.2f, 1 };
+	light_objects.push_back(nullptr);
+	window.AddDrawable(scenes[3].GetModel<My::Points::Point3Norm<GLfloat>>(&program));
+	setAmbient(window.GetDrawableAs<My::Figures::Model>(7));
+	tr = window.GetDrawableAs<My::Figures::Transformable>(7);
+	tr->Scale(glm::vec3(0.005, 0.005, 0.005));
+	tr->Translate(glm::vec3(20, 30, 25));
+	tr->Rotate(-M_PI / 2, glm::vec3(1, 0, 0));
+	window.AddLightSource(My::Lights::LightSource::Spot());
+	window.GetLightSource(5).GetParameters().SpotDirection = { 0, 0, -1 };
+	window.GetLightSource(5).GetParameters().Diffuse = { 1, 0, 0, 1 };
+	window.GetLightSource(5).GetParameters().Specular = { 1, 0, 0, 1 };
+	window.GetLightSource(5).GetParameters().SpotCutoff = 30;
+	window.GetLightSource(5).GetParameters().SpotExponent = 60;
+	window.GetLightSource(5).GetParameters().Position = { 20, 30, 25, 1 };
+	light_objects.push_back(tr);
+	window.AddDrawable(scenes[4].GetModel<My::Points::Point3TexNormTangents<GLfloat>>(&program));
+	makeModelBrightAgain(window.GetDrawableAs<My::Figures::Model>(8));
+	tr = window.GetDrawableAs<My::Figures::Transformable>(8);
+	tr->Translate(glm::vec3(20, 20, 20));
+	window.AddDrawable(scenes[4].GetModel<My::Points::Point3Norm<GLfloat>>(&program));
+	tr = window.GetDrawableAs<My::Figures::Transformable>(9);
+	tr->Translate(glm::vec3(20, 20, 35));
+	tr->Rotate(M_PI, glm::vec3(0, 1, 0));
+	window.AddDrawable(*window[7]);
+	tr = window.GetDrawableAs<My::Figures::Transformable>(10);
+	tr->Translate(glm::vec3(0, 0, 5));
+	tr->Rotate(M_PI, glm::vec3(1, 0, 0));
+	window.AddLightSource(My::Lights::LightSource::Spot());
+	window.GetLightSource(6).GetParameters().SpotDirection = { 0, 0, 1 };
+	window.GetLightSource(6).GetParameters().Diffuse = { 0, 1, 0, 1 };
+	window.GetLightSource(6).GetParameters().Specular = { 0, 1, 0, 1 };
+	window.GetLightSource(6).GetParameters().SpotCutoff = 60;
+	window.GetLightSource(6).GetParameters().SpotExponent = 1;
+	window.GetLightSource(6).GetParameters().Position = { 20, 30, 30, 1 };
+	light_objects.push_back(tr);
+	window.AddDrawable(scenes[3].GetModel<My::Points::Point3Norm<GLfloat>>(&program));
+	tr = window.GetDrawableAs<My::Figures::Transformable>(11);
+	tr->Translate(glm::vec3(-5, -10, 5));
+	tr->Scale(glm::vec3(0.005, 0.005, 0.005));
+	tr->Rotate(M_PI / 6, glm::vec3(0, 0, 1));
+	window.AddLightSource(My::Lights::LightSource::Spot());
+	window.GetLightSource(7).GetParameters().SpotDirection = { sqrtf(3) / 2 , 0, 1 / 2 };
+	window.GetLightSource(7).GetParameters().Diffuse = { 1, 1, 0, 1 };
+	window.GetLightSource(7).GetParameters().Specular = { 1, 1, 0, 1 };
+	window.GetLightSource(7).GetParameters().SpotCutoff = 45;
+	window.GetLightSource(7).GetParameters().SpotExponent = 1;
+	window.GetLightSource(7).GetParameters().Position = { -5, -10, 5, 1 };
+	light_objects.push_back(tr);
 	sf::Clock clock;
 	c_time = clock.getElapsedTime().asMilliseconds();
 	while (window.IsOpen()) {

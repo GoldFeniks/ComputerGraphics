@@ -31,7 +31,7 @@ namespace My {
 			typedef Figures::IndexedFigure<point_type> figure_type;
 			typedef std::vector<figure_type> vector_type;
 
-			static vector_type GetFigures(const Scene* scene, Program* program) {
+			static vector_type GetFigures(Scene* scene, Program* program) {
 				vector_type result;
 				for (size_t i = 0; i < scene->scene->mNumMeshes; ++i)
 					result.push_back(loadMesh(scene, scene->scene->mMeshes[i], program));
@@ -49,7 +49,7 @@ namespace My {
 				}
 			}
 
-			static figure_type loadMesh(const Scene* scene, const aiMesh* mesh, Program* program) {
+			static figure_type loadMesh(Scene* scene, const aiMesh* mesh, Program* program) {
 				figure_type figure(program, mesh->mNumVertices, mesh->mNumFaces * 3);
 				for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
 					point_type* point = figure.GetPoints() + i;
@@ -92,9 +92,9 @@ namespace My {
 				figure.Specular = { color.r, color.b, color.g, 1 };
 				pMaterial->Get(AI_MATKEY_SHININESS, figure.Shininess);
 				if (My::Points::Size<point_type>::TextureSize) {
-					figure.DiffTexture = scene->diff_textures[mesh->mMaterialIndex];
-					figure.SpecTexture = scene->spec_textures[mesh->mMaterialIndex];
-					figure.NormTexture = scene->norm_textures[mesh->mMaterialIndex];
+					figure.DiffTexture = scene->diff_textures[mesh->mMaterialIndex].GetId();
+					figure.SpecTexture = scene->spec_textures[mesh->mMaterialIndex].GetId();
+					figure.NormTexture = scene->norm_textures[mesh->mMaterialIndex].GetId();
 				}
 				return figure;
 			}
@@ -159,19 +159,70 @@ namespace My {
 
 	private:
 
+		struct Texture {
+			
+			int width, height;
+			unsigned char* data = nullptr;
+			GLuint id = 0;
+
+			Texture() {};
+			Texture(std::string path) {
+				data = SOIL_load_image(path.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+			}
+
+			Texture(const Texture&) = delete;
+			Texture(Texture&& other) {
+				*this = std::move(other);
+			}
+
+			~Texture() {
+				if (data != nullptr)
+					SOIL_free_image_data(data);
+				if (id)
+					glDeleteTextures(1, &id);
+			}
+
+			Texture& operator=(const Texture&) = delete;
+			Texture& operator=(Texture&& other) {
+				std::swap(data, other.data);
+				std::swap(width, other.width);
+				std::swap(height, other.height);
+				std::swap(id, other.id);
+				return *this;
+			}
+
+			GLuint GetId() {
+				if (data == nullptr)
+					return id;
+				glGenTextures(1, &id);
+				glBindTexture(GL_TEXTURE_2D, id);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				glGenerateMipmap(GL_TEXTURE_2D);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				SOIL_free_image_data(data);
+				data = nullptr;
+				return id;
+			}
+
+		};
+
 		Assimp::Importer* importer = nullptr;
 		const aiScene* scene = nullptr;
 		std::string dir;
-		std::vector<GLuint> diff_textures, spec_textures, norm_textures;
+		std::vector<Texture> diff_textures, spec_textures, norm_textures;
 
 		static Scene* construct(std::string file_name) {
 			return new Scene(file_name);
 		}
 
 		void loadTextures() {
-			diff_textures.resize(scene->mNumMaterials, 0);
-			spec_textures.resize(scene->mNumMaterials, 0);
-			norm_textures.resize(scene->mNumMaterials, 0);
+			diff_textures.resize(scene->mNumMaterials);
+			spec_textures.resize(scene->mNumMaterials);
+			norm_textures.resize(scene->mNumMaterials);
 			for (int i = 0; i < scene->mNumMaterials; ++i) {
 				aiMaterial* material = scene->mMaterials[i];
 				diff_textures[i] = loadTexture(aiTextureType_DIFFUSE, material);
@@ -180,30 +231,13 @@ namespace My {
 			}
 		}
 
-		GLuint loadTexture(aiTextureType type, aiMaterial* material) {
-			GLuint result = 0;
+		Texture loadTexture(aiTextureType type, aiMaterial* material) {
+			Texture result;
 			aiString path;
 			if (material->GetTextureCount(type) > 0)
-				if (material->GetTexture(type, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) 
-					result = loadTextureFromFile(dir + std::string(path.data));
+				if (material->GetTexture(type, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+					result = Texture(dir + std::string(path.data));
 			return result;
-		}
-
-		static GLuint loadTextureFromFile(std::string path) {
-			GLuint textureId;
-			glGenTextures(1, &textureId);
-			int width, height;
-			unsigned char* image = SOIL_load_image(path.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
-			glBindTexture(GL_TEXTURE_2D, textureId);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			SOIL_free_image_data(image);
-			return textureId;
 		}
 
 	};
