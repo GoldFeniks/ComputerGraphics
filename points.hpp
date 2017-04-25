@@ -65,6 +65,17 @@ namespace My {
 
 		};
 
+		template<typename T>
+		struct Point3 : public BasePoint<T> {
+
+			Point3() {};
+			Point3(Vectors::Vector3<T> Point) : Point(Point) {};
+			Point3(T x, T y, T z) : Point(Vectors::Vector3<T>(x, y, z)) {};
+
+			Vectors::Vector3<T> Point;
+
+		};
+
 #pragma pack(pop)
 
 		template<typename T>
@@ -113,6 +124,18 @@ namespace My {
 			static const size_t TextureSize = 0;
 			static const size_t ColorSize = 0;
 			static const size_t NormalSize = 3;
+			static const size_t TangentSize = 0;
+			static const size_t BitangentSize = 0;
+
+		};
+
+		template<typename T>
+		struct Size<Point3<T>> {
+
+			static const size_t PointSize = 3;
+			static const size_t TextureSize = 0;
+			static const size_t ColorSize = 0;
+			static const size_t NormalSize = 0;
 			static const size_t TangentSize = 0;
 			static const size_t BitangentSize = 0;
 

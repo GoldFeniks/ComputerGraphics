@@ -106,7 +106,7 @@ namespace My {
 		Scene(std::string file_path) {
 			importer = new Assimp::Importer;
 			scene = importer->ReadFile(file_path.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace
-				| aiProcess_FlipUVs | aiProcess_GenNormals );
+				| aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_OptimizeMeshes );
 			dir = file_path;
 			dir.resize(file_path.rfind("/"));
 			dir += "/";

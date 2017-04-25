@@ -38,12 +38,14 @@ namespace My {
 			void SetIndex(GLuint);
 			void SetType(Type);
 			Type GetType();
+			bool Toggle();
 
 		private:
 
 			Type type;
 			Parameters parameters;
 			GLuint index = GL_LIGHT0;
+			bool enabled; 
 
 		};
 

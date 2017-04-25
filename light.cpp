@@ -36,10 +36,10 @@ typename My::Lights::LightSource::Parameters& My::Lights::LightSource::GetParame
 }
 
 void My::Lights::LightSource::Use(Program* program) {
-	glLightfv(index, GL_AMBIENT, glm::value_ptr(parameters.Ambient));
+	glLightfv(index, GL_AMBIENT, glm::value_ptr(enabled ? parameters.Ambient : glm::vec4(0)));
 	glLightfv(index, GL_DIFFUSE, glm::value_ptr(parameters.Diffuse));
 	glLightfv(index, GL_SPECULAR, glm::value_ptr(parameters.Specular));
-	glLightfv(index, GL_POSITION, glm::value_ptr(parameters.Position));
+	glLightfv(index, GL_POSITION, glm::value_ptr(enabled ? parameters.Position : glm::vec4(0)));
 	glLightfv(index, GL_SPOT_DIRECTION, glm::value_ptr(parameters.SpotDirection));
 	glLightfv(index, GL_SPOT_CUTOFF, (GLfloat*)&parameters.SpotCutoff);
 	glLightfv(index, GL_SPOT_EXPONENT, (GLfloat*)&parameters.SpotExponent);
@@ -77,5 +77,9 @@ void My::Lights::LightSource::SetType(Type n_type) {
 
 My::Lights::Type My::Lights::LightSource::GetType() {
 	return type;
+}
+
+bool My::Lights::LightSource::Toggle() {
+	return enabled = !enabled;
 }
 
