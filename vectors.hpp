@@ -5,70 +5,83 @@ namespace My {
 
 	namespace Vectors {
 
-		#pragma pack(push, 1)
+#pragma pack(push, 1)
 
-		template<typename T>
+		template<typename T, std::size_t S>
 		struct BaseVector {
 
 			typedef T value_type;
 
-		};
-
-		template<typename T>
-		struct Vector2 : public BaseVector<T> {
-
-			Vector2() {};
-			Vector2(T x, T y) : x(x), y(y) {};
-
-			T x = T(), y = T();
+			T data[S];
 
 		};
 
+		namespace {
+
+			template<typename T>
+			struct BaseVector<T, 2> {
+
+				union {
+
+					struct { T x, y; };
+					T data[2];
+
+				};
+
+				BaseVector() {};
+				BaseVector(T x, T y) : x(x), y(y) {};
+
+			};
+
+			template<typename T>
+			struct BaseVector<T, 3> {
+
+				union {
+
+					struct { T x, y, z; };
+					T data[3];
+				};
+
+				BaseVector() {};
+				BaseVector(T x, T y, T z) : x(x), y(y), z(z) {};
+
+			};
+
+			template<typename T>
+			struct BaseVector<T, 4> {
+
+				union {
+
+					struct { T x, y, z, w; };
+					T data[4];
+
+				};
+
+				BaseVector() {};
+				BaseVector(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {};
+
+			};
+
+		}
+
+#pragma pack(pop)
+
 		template<typename T>
-		struct Vector3 : public BaseVector<T> {
-
-			Vector3() {};
-			Vector3(T x, T y, T z) : x(x), y(y), z(z) {};
-
-			T x = T(), y = T(), z = T();
-
-		};
+		using Vector2 = BaseVector<T, 2>;
 
 		template<typename T>
-		struct Vector4 : public BaseVector<T> {
+		using Vector3 = BaseVector<T, 3>;
 
-			Vector4() {};
-			Vector4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {};
-
-			T x = T(), y = T(), z = T(), w = T();
-		};	
-
-		#pragma pack(pop)
+		template<typename T>
+		using Vector4 = BaseVector<T, 4>;
 
 		namespace Sizes {
 
-			template<typename T>
-			struct Size {};
+			template<typename T = std::enable_if<std::is_base_of<BaseVector<typename T::value_type, T::S>, T>::value>::type>
+			struct Size {
 
-			template<typename T>
-			struct Size<Vector2<T>> {
-
-				static const size_t DimSize = 2;
-
-			};
-
-			template<typename T>
-			struct Size<Vector3<T>> {
-
-				static const size_t DimSize = 3;
-
-			};
-
-			template<typename T>
-			struct Size<Vector4<T>> {
-
-				static const size_t DimSize = 4;
-
+				static const std::size_t DimSize = T::S;
+				
 			};
 
 		}// namespace Sizes
