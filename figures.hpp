@@ -172,12 +172,12 @@ namespace My {
 				vao.Bind();
 				vbo.BufferData(Target, sizeof(point_type) * points_count, points, Usage);
 				size_t offset = 0;
-				setAttribPointer(program->PointAttribute, Points::Size<point_type>::PointSize, offset);
-				setAttribPointer(program->ColorAttribute, Points::Size<point_type>::ColorSize, offset);
-				setAttribPointer(program->NormalAttribute, Points::Size<point_type>::NormalSize, offset);
-				setAttribPointer(program->TextureAttribute, Points::Size<point_type>::TextureSize, offset);
-				setAttribPointer(program->TangentAttribute, Points::Size<point_type>::TangentSize, offset);
-				setAttribPointer(program->BitangentAttribute, Points::Size<point_type>::BitangentSize, offset);
+				setAttribPointer(program->PointAttribute, point_type::point_vector::Size, offset);
+				setAttribPointer(program->NormalAttribute, point_type::normal_vector::Size, offset);
+				setAttribPointer(program->ColorAttribute, point_type::color_vector::Size, offset);
+				setAttribPointer(program->TextureAttribute, point_type::texture_vector::Size, offset);
+				setAttribPointer(program->TangentAttribute, point_type::tangent_vector::Size, offset);
+				setAttribPointer(program->BitangentAttribute, point_type::bitangent_vector::Size, offset);
 				vao.Unbind();
 				loaded = true;
 			}

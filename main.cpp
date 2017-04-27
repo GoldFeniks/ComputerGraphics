@@ -42,6 +42,7 @@ void setShininess(My::Figures::Model* model, GLfloat shn = 64) {
 
 
 int main() {
+	My::Points::Point3<int> p;
 	My::Window window(1500, 1500, "Triangle", sf::Style::Default, sf::ContextSettings(24, 8, 0, 4, 4));
 	window.GetCurrentCamera().SetProjection(glm::radians(60.f), window.Ratio(), 0.1f, 10000.f);
 	window.GetCurrentCamera().Setup(glm::vec3(0, 0, 15), glm::vec3(0, 0, 0));
@@ -112,8 +113,8 @@ int main() {
 	light_objects.push_back(tr);
 	window.AddLightSource(My::Lights::LightSource::Direction());
 	window.GetLightSource(4).GetParameters().Position = { -1, -1, -1, 0 };
-	window.GetLightSource(4).GetParameters().Diffuse = { 0, 0, 0.2f, 1 };
-	window.GetLightSource(4).GetParameters().Specular = { 0, 0, 0.2f, 1 };
+	window.GetLightSource(4).GetParameters().Diffuse = { 0, 0, 0.5f, 1 };
+	window.GetLightSource(4).GetParameters().Specular = { 0, 0, 0.5f, 1 };
 	light_objects.push_back(nullptr);
 	window.AddDrawable(scenes[3].GetModel<My::Points::Point3Norm<GLfloat>>(&program));
 	setAmbient(window.GetDrawableAs<My::Figures::Model>(7));
@@ -128,8 +129,9 @@ int main() {
 	window.GetLightSource(5).GetParameters().SpotCutoff = 30;
 	window.GetLightSource(5).GetParameters().SpotExponent = 60;
 	window.GetLightSource(5).GetParameters().Position = { 20, 3, 25, 1 };
+	window.GetLightSource(5).GetParameters().LinearAttenuation = 0.2;
 	light_objects.push_back(tr);
-	window.AddDrawable(scenes[4].GetModel<My::Points::Point3TexNormTangents<GLfloat>>(&program));
+	window.AddDrawable(scenes[4].GetModel<My::Points::Point3NormTexTanBitan<GLfloat>>(&program));
 	makeModelBrightAgain(window.GetDrawableAs<My::Figures::Model>(8));
 	tr = window.GetDrawableAs<My::Figures::Transformable>(8);
 	tr->Translate(glm::vec3(20, -7, 20));
@@ -170,6 +172,11 @@ int main() {
 	window.AddDrawable(*window[12]);
 	tr = window.GetDrawableAs<My::Figures::Transformable>(13);
 	tr->Scale(glm::vec3(-1, -1, -1));
+	window.AddDrawable(scenes[2].GetModel<My::Points::Point3Norm<GLfloat>>(&program));
+	tr = window.GetDrawableAs<My::Figures::Transformable>(14);
+	setShininess(window.GetDrawableAs<My::Figures::Model>(14));
+	tr->Translate(glm::vec3(20, 10, -20));
+	tr->Scale(glm::vec3(5, 5, 5));
 	My::Figures::BaseLine<My::Points::Point3<GLfloat>> line(&a_program);
 	line.Ambient = { 1, 1, 1, 1 };
 	line.SetPoints({ 
@@ -179,7 +186,7 @@ int main() {
 	float step = abs(plane_x * 2) / (lines_count - 1);
 	for (size_t i = 0; i < lines_count; ++i) {
 		window.AddDrawable(line);
-		window.GetDrawableAs<My::Figures::Transformable>(14 + i)->Translate(glm::vec3(i * step, 0, 0));
+		window.GetDrawableAs<My::Figures::Transformable>(15 + i)->Translate(glm::vec3(i * step, 0, 0));
 	}
 	step = abs(plane_z * 2) / (lines_count - 1);
 	line = My::Figures::BaseLine<My::Points::Point3<GLfloat>>(&a_program);
@@ -190,7 +197,7 @@ int main() {
 	line.Ambient = { 1, 1, 1, 1 };
 	for (size_t i = 0; i < lines_count; ++i) {
 		window.AddDrawable(line);
-		window.GetDrawableAs<My::Figures::Transformable>(14 + i + lines_count)->Translate(glm::vec3(0, 0, i * step));
+		window.GetDrawableAs<My::Figures::Transformable>(15 + i + lines_count)->Translate(glm::vec3(0, 0, i * step));
 	}
 	sf::Clock clock;
 	c_time = clock.getElapsedTime().asMilliseconds();

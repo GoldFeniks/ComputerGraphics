@@ -54,28 +54,28 @@ namespace My {
 				for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
 					point_type* point = figure.GetPoints() + i;
 					size_t offset = 0;
-					setPointProperty(Points::Size<point_type>::PointSize, (value_type*)point,
+					setPointProperty(point_type::point_vector::Size, (value_type*)point,
 						{ mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z }, offset);
-					if (mesh->mColors[0])
-						setPointProperty(Points::Size<point_type>::ColorSize, (value_type*)point,
-						{ mesh->mColors[0][i].r,  mesh->mColors[0][i].g, mesh->mColors[0][i].b }, offset);
-					else offset += Points::Size<point_type>::ColorSize;
 					if (mesh->mNormals)
-						setPointProperty(Points::Size<point_type>::NormalSize, (value_type*)point,
+						setPointProperty(point_type::normal_vector::Size, (value_type*)point,
 						{ mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z }, offset);
-					else offset += Points::Size<point_type>::NormalSize;
+					else offset += point_type::normal_vector::Size;
+					if (mesh->mColors[0])
+						setPointProperty(point_type::color_vector::Size, (value_type*)point,
+						{ mesh->mColors[0][i].r,  mesh->mColors[0][i].g, mesh->mColors[0][i].b }, offset);
+					else offset += point_type::color_vector::Size;
 					if (mesh->HasTextureCoords(0))
-						setPointProperty(Points::Size<point_type>::TextureSize, (value_type*)point,
+						setPointProperty(point_type::texture_vector::Size, (value_type*)point,
 						{ mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y }, offset);
-					else offset += Points::Size<point_type>::TextureSize;
+					else offset += point_type::texture_vector::Size;
 					if (mesh->mTangents)
-						setPointProperty(Points::Size<point_type>::TangentSize, (value_type*)point,
+						setPointProperty(point_type::tangent_vector::Size, (value_type*)point,
 						{ mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z }, offset);
-					else offset += Points::Size<point_type>::TangentSize;
+					else offset += point_type::tangent_vector::Size;
 					if (mesh->mBitangents)
-						setPointProperty(Points::Size<point_type>::BitangentSize, (value_type*)point,
+						setPointProperty(point_type::bitangent_vector::Size, (value_type*)point,
 						{ mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z }, offset);
-					else offset += Points::Size<point_type>::BitangentSize;
+					else offset += point_type::bitangent_vector::Size;
 				}
 				for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
 					GLuint* index = figure.GetIndices() + i * 3;
@@ -91,7 +91,7 @@ namespace My {
 				pMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color);
 				figure.Specular = { color.r, color.b, color.g, 1 };
 				pMaterial->Get(AI_MATKEY_SHININESS, figure.Shininess);
-				if (My::Points::Size<point_type>::TextureSize) {
+				if (point_type::texture_vector::Size) {
 					figure.DiffTexture = scene->diff_textures[mesh->mMaterialIndex].GetId();
 					figure.SpecTexture = scene->spec_textures[mesh->mMaterialIndex].GetId();
 					figure.NormTexture = scene->norm_textures[mesh->mMaterialIndex].GetId();
