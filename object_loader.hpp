@@ -14,6 +14,7 @@
 #include <initializer_list>
 #include <thread>
 #include <future>
+#include <cstddef>
 
 namespace My {
 
@@ -40,42 +41,34 @@ namespace My {
 
 		private:
 
-			static void setPointProperty(size_t size, value_type* point, std::initializer_list<value_type> value, size_t& offset) {
+			static void setPointProperty(size_t size, value_type* point, std::initializer_list<value_type> value) {
 				std::initializer_list<value_type>::iterator it = value.begin();
-				if (size) {
+				if (size) 
 					for (size_t i = 0; i < size; ++i)
-						new (point + offset + i) value_type(*(it + i));
-					offset += size;
-				}
+						new (point + i) value_type(*(it + i));
 			}
 
 			static figure_type loadMesh(Scene* scene, const aiMesh* mesh, Program* program) {
 				figure_type figure(program, mesh->mNumVertices, mesh->mNumFaces * 3);
 				for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
 					point_type* point = figure.GetPoints() + i;
-					size_t offset = 0;
-					setPointProperty(point_type::point_vector::Size, (value_type*)point,
-						{ mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z }, offset);
+					setPointProperty(point_type::point_vector::Size, (value_type*)&(point->Point),
+						{ mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z });
 					if (mesh->mNormals)
-						setPointProperty(point_type::normal_vector::Size, (value_type*)point,
-						{ mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z }, offset);
-					else offset += point_type::normal_vector::Size;
+						setPointProperty(point_type::normal_vector::Size, (value_type*)&(point->Normal),
+						{ mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z });
 					if (mesh->mColors[0])
-						setPointProperty(point_type::color_vector::Size, (value_type*)point,
-						{ mesh->mColors[0][i].r,  mesh->mColors[0][i].g, mesh->mColors[0][i].b }, offset);
-					else offset += point_type::color_vector::Size;
+						setPointProperty(point_type::color_vector::Size, (value_type*)&(point->Color),
+						{ mesh->mColors[0][i].r,  mesh->mColors[0][i].g, mesh->mColors[0][i].b });
 					if (mesh->HasTextureCoords(0))
-						setPointProperty(point_type::texture_vector::Size, (value_type*)point,
-						{ mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y }, offset);
-					else offset += point_type::texture_vector::Size;
+						setPointProperty(point_type::texture_vector::Size, (value_type*)&(point->Texture),
+						{ mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y });
 					if (mesh->mTangents)
-						setPointProperty(point_type::tangent_vector::Size, (value_type*)point,
-						{ mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z }, offset);
-					else offset += point_type::tangent_vector::Size;
+						setPointProperty(point_type::tangent_vector::Size, (value_type*)&(point->Tangent),
+						{ mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z });
 					if (mesh->mBitangents)
-						setPointProperty(point_type::bitangent_vector::Size, (value_type*)point,
-						{ mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z }, offset);
-					else offset += point_type::bitangent_vector::Size;
+						setPointProperty(point_type::bitangent_vector::Size, (value_type*)&(point->Bitangent),
+						{ mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z });
 				}
 				for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
 					GLuint* index = figure.GetIndices() + i * 3;

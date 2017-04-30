@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 #include <type_traits>
+#include <cstddef>
 
 namespace My {
 
@@ -171,13 +172,12 @@ namespace My {
 			virtual void Load() override {
 				vao.Bind();
 				vbo.BufferData(Target, sizeof(point_type) * points_count, points, Usage);
-				size_t offset = 0;
-				setAttribPointer(program->PointAttribute, point_type::point_vector::Size, offset);
-				setAttribPointer(program->NormalAttribute, point_type::normal_vector::Size, offset);
-				setAttribPointer(program->ColorAttribute, point_type::color_vector::Size, offset);
-				setAttribPointer(program->TextureAttribute, point_type::texture_vector::Size, offset);
-				setAttribPointer(program->TangentAttribute, point_type::tangent_vector::Size, offset);
-				setAttribPointer(program->BitangentAttribute, point_type::bitangent_vector::Size, offset);
+				setAttribPointer(program->PointAttribute, point_type::point_vector::Size, offsetof(point_type, Point));
+				setAttribPointer(program->NormalAttribute, point_type::normal_vector::Size, offsetof(point_type, Normal));
+				setAttribPointer(program->ColorAttribute, point_type::color_vector::Size, offsetof(point_type, Color));
+				setAttribPointer(program->TextureAttribute, point_type::texture_vector::Size, offsetof(point_type, Texture));
+				setAttribPointer(program->TangentAttribute, point_type::tangent_vector::Size, offsetof(point_type, Tangent));
+				setAttribPointer(program->BitangentAttribute, point_type::bitangent_vector::Size, offsetof(point_type, Bitangent));
 				vao.Unbind();
 				loaded = true;
 			}
@@ -230,11 +230,9 @@ namespace My {
 			point_type* points = nullptr;
 			index_type points_count = 0;
 
-			void setAttribPointer(std::string name, size_t size, size_t& offset) {
-				if (size) {
-					vbo.SetVertexAttribPointer(program->GetAttributeLocation(name), size, type, GL_FALSE, sizeof(point_type), (void*)(offset * sizeof(value_type)));
-					offset += size;
-				}
+			void setAttribPointer(std::string name, size_t size, size_t offset) {
+				if (size)
+					vbo.SetVertexAttribPointer(program->GetAttributeLocation(name), size, type, GL_FALSE, sizeof(point_type), (void*)offset);
 			}
 
 			void loadTexture(GLuint texture, size_t index, std::string texture_name, std::string bool_name) {
