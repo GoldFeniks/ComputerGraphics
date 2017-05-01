@@ -362,6 +362,7 @@ namespace My {
 				loadMaterial();
 				loadTextures();
 				glDrawElements(Mode, indices_count, GL_UNSIGNED_INT, indices);
+				glBindTexture(GL_TEXTURE_2D, 0);
 				vao.Unbind();
 			}
 

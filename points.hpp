@@ -22,32 +22,35 @@ namespace My {
 
 			static const std::size_t Size = PS + NS + CS + TS + TAS + BS;
 
-			union {
-
-				struct {
-
-					point_vector Point;
-					normal_vector Normal;
-					color_vector Color;
-					texture_vector Texture;
-					tangent_vector Tangent;
-					bitangent_vector Bitangent;
-
-				};
-
-				T data[Size];
-
-			};
+			point_vector Point;
+			normal_vector Normal;
+			color_vector Color;
+			texture_vector Texture;
+			tangent_vector Tangent;
+			bitangent_vector Bitangent;
 
 			BasePoint() {};
 			BasePoint(const std::initializer_list<T> list) {
-				std::initializer_list<T>::iterator it = list.begin();
-				for (size_t i = 0; i < Size; ++i)
-					data[i] = *(it + i);
+				InitFromIterator(list.begin());
 			}
 			BasePoint(const std::vector<T> values) {
-				for (size_t i = 0; i < Size; ++i)
-					data[i] = values[i];
+				InitFromIterator(values.begin());
+			}
+
+			template<typename TI>
+			void InitFromIterator(TI it) {
+				Copy(it, it + Point.Size, (T*)&Point);
+				Copy(it, it + Normal.Size, (T*)&Normal);
+				Copy(it, it + Color.Size, (T*)&Color);
+				Copy(it, it + Texture.Size, (T*)&Texture);
+				Copy(it, it + Tangent.Size, (T*)&Tangent);
+				Copy(it, it + Bitangent.Size, (T*)&Bitangent);
+			}
+
+			template<typename TI>
+			void Copy(TI& start, TI end, T* to) {
+				while (start != end)
+					*(to++) = *(start++);
 			}
 
 		};
@@ -98,6 +101,15 @@ namespace My {
 			Point3() {};
 			Point3(Vectors::Vector3<T> Point) : BasePoint(Vectors::CombineVectors(Point)) {};
 			Point3(T x, T y, T z) : BasePoint({ x, y, z }) {};
+
+		};
+
+		template<typename T>
+		struct Point2Tex : public BasePoint<T, 2, 0, 0, 2> {
+
+			Point2Tex() {};
+			Point2Tex(Vectors::Vector2<T> Point, Vectors::Vector2<T> Texture) : BasePoint(Vectors::CombineVectors<T>(Point, Texture)) {};
+			Point2Tex(T x, T y, T tx, T tz) : BasePoint({ x, y, tx, tz }) {};
 
 		};
 

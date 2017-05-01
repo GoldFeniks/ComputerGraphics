@@ -11,6 +11,10 @@ My::Window::Window(size_t width, size_t height, std::string title, sf::Uint32 st
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_PROGRAM_POINT_SIZE);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glViewport(0, 0, window->getSize().x, window->getSize().y);
 	glClearColor(0.f, 0.f, 0.f, 1.f);

@@ -1,4 +1,5 @@
 #define _USE_MATH_DEFINES
+#define _SCL_SECURE_NO_WARNINGS
 #define GL_MAX_LIGHTS 10
 #include <GL/glew.h>
 #include <SFML/Window.hpp>
@@ -11,6 +12,7 @@
 #include "lines.hpp"
 #include "object_loader.hpp"
 #include <fstream>
+#include "text.hpp"
 
 unsigned long long c_time = 0;
 int mouse_x = 1600, mouse_y = 900;
@@ -40,16 +42,51 @@ void setShininess(My::Figures::Model* model, GLfloat shn = 64) {
 		model->GetDrawableAs<My::Figures::Material>(i)->Shininess = shn;
 }
 
+My::Text::OnScreenText* text;
+size_t light_index = 1;
+
+void chooseLight(size_t i, My::Window* window) {
+	light_index = i;
+	std::string t = "Current light: #" + std::to_string(i) + " Type: ";
+	switch (window->GetLightSource(i).GetType()) {
+	case My::Lights::Type::Ambient:
+		t += "Ambient CAN'T MOVE OR ROTATE";
+		break;
+	case My::Lights::Type::Direction:
+		t += "Direction CAN'T ROTATE";
+		break;
+	case My::Lights::Type::Point:
+		t += "Point CAN'T ROTATE";
+		break;
+	case My::Lights::Type::Spot:
+		t += "Spot";
+		break;
+	}
+	text->SetText(t);
+}
+
+void rotateLight(size_t index, GLfloat angle, glm::vec3 vec, My::Window* window) {
+	window->GetLightSource(index).Rotate(angle, vec);
+	if (light_objects[index] != nullptr)
+		light_objects[index]->Rotate(angle, vec);
+}
+
+void moveLight(size_t index, glm::vec3 vec, My::Window* window) {
+	window->GetLightSource(index).Translate(vec);
+	if (light_objects[index] != nullptr)
+		light_objects[index]->Translate(vec);
+}
 
 int main() {
-	My::Points::Point3<int> p;
 	My::Window window(1500, 1500, "Triangle", sf::Style::Default, sf::ContextSettings(24, 8, 0, 4, 4));
 	window.GetCurrentCamera().SetProjection(glm::radians(60.f), window.Ratio(), 0.1f, 10000.f);
-	window.GetCurrentCamera().Setup(glm::vec3(0, 0, 15), glm::vec3(0, 0, 0));
+	window.GetCurrentCamera().Setup(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0));
+	My::Program text_program("shaders/text_vertex.glsl", "shaders/text_fragment.glsl");
+	My::Text::Font font("fonts/papyrus.ttf", 64);
 	window.AddCamera(My::Camera(glm::vec3(0, 3, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 1)));
 	window.GetCamera(1).SetProjection(glm::radians(60.f), window.Ratio(), 0.1f, 100.f);
-	window.AddLightSource(My::Lights::LightSource::Ambient());
 	light_objects.push_back(nullptr);
+	window.AddLightSource(My::Lights::LightSource::Ambient());
 	window.GetLightSource(0).GetParameters().Ambient = { 0.1f, 0.1f, 0.1f, 1 };
 	window.AddLightSource(My::Lights::LightSource::Spot());
 	light_objects.push_back(nullptr);
@@ -123,7 +160,6 @@ int main() {
 	tr->Translate(glm::vec3(20, 3, 25));
 	tr->Rotate(-M_PI / 2, glm::vec3(1, 0, 0));
 	window.AddLightSource(My::Lights::LightSource::Spot());
-	window.GetLightSource(5).GetParameters().SpotDirection = { 0, 0, -1 };
 	window.GetLightSource(5).GetParameters().Diffuse = { 1, 0, 0, 1 };
 	window.GetLightSource(5).GetParameters().Specular = { 1, 0, 0, 1 };
 	window.GetLightSource(5).GetParameters().SpotCutoff = 30;
@@ -144,7 +180,7 @@ int main() {
 	tr->Translate(glm::vec3(0, 0, 5));
 	tr->Rotate(M_PI, glm::vec3(1, 0, 0));
 	window.AddLightSource(My::Lights::LightSource::Spot());
-	window.GetLightSource(6).GetParameters().SpotDirection = { 0, 0, 1 };
+	window.GetLightSource(6).Rotate(-M_PI, glm::vec3(-1, 0, 0));
 	window.GetLightSource(6).GetParameters().Diffuse = { 0, 1, 0, 1 };
 	window.GetLightSource(6).GetParameters().Specular = { 0, 1, 0, 1 };
 	window.GetLightSource(6).GetParameters().SpotCutoff = 60;
@@ -157,7 +193,7 @@ int main() {
 	tr->Scale(glm::vec3(0.005, 0.005, 0.005));
 	tr->Rotate(M_PI / 2, glm::vec3(0, 0, 1));
 	window.AddLightSource(My::Lights::LightSource::Spot());
-	window.GetLightSource(7).GetParameters().SpotDirection = { -1 , 0, 0 };
+	window.GetLightSource(7).Rotate(M_PI / 2, glm::vec3(0, 1, 0));
 	window.GetLightSource(7).GetParameters().Diffuse = { 1, 1, 0, 1 };
 	window.GetLightSource(7).GetParameters().Specular = { 1, 1, 0, 1 };
 	window.GetLightSource(7).GetParameters().SpotCutoff = 15;
@@ -199,8 +235,12 @@ int main() {
 		window.AddDrawable(line);
 		window.GetDrawableAs<My::Figures::Transformable>(15 + i + lines_count)->Translate(glm::vec3(0, 0, i * step));
 	}
+	text = new My::Text::OnScreenText(&font, &text_program, 1500, 1500);
+	window.AddDrawable(text);
+	text->Translate(glm::vec3(50, 50, 0));
 	sf::Clock clock;
 	c_time = clock.getElapsedTime().asMilliseconds();
+	chooseLight(1, &window);
 	while (window.IsOpen()) {
 		sf::Event event;
 		while (window.PollEvent(event)) {
@@ -219,34 +259,77 @@ int main() {
 			if (event.type == sf::Event::Resized) {
 				glViewport(0, 0, window.GetSize().x, window.GetSize().y);
 				window.GetCurrentCamera().SetProjection(glm::radians(60.f), window.Ratio(), 0.1f, 10000.f);
+				text->SetWidthHeight(window.GetSize().x, window.GetSize().y);
 			}
 		}
 		unsigned long long d_time = (unsigned long long)clock.getElapsedTime().asMilliseconds() - c_time;
 		c_time += d_time;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0))
+				chooseLight(0, &window);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
+				chooseLight(1, &window);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
+				chooseLight(2, &window);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
+				chooseLight(3, &window);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4))
+				chooseLight(4, &window);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5))
+				chooseLight(5, &window);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num6))
+				chooseLight(6, &window);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num7))
+				chooseLight(7, &window);
+		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-			window.GetCurrentCamera().RotateYZ(My::Camera::Default::Angle * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().RotateYZ(My::Camera::Default::Angle * d_time);
+			else rotateLight(light_index, My::Camera::Default::Angle * d_time, glm::vec3(1, 0, 0), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-			window.GetCurrentCamera().RotateYZ(-My::Camera::Default::Angle * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().RotateYZ(-My::Camera::Default::Angle * d_time);
+			else rotateLight(light_index, -My::Camera::Default::Angle * d_time, glm::vec3(1, 0, 0), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-			window.GetCurrentCamera().RotateXZ(My::Camera::Default::Angle * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().RotateXZ(My::Camera::Default::Angle * d_time);
+			else rotateLight(light_index, My::Camera::Default::Angle * d_time, glm::vec3(0, 1, 0), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			window.GetCurrentCamera().RotateXZ(-My::Camera::Default::Angle * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().RotateXZ(-My::Camera::Default::Angle * d_time);
+			else rotateLight(light_index, -My::Camera::Default::Angle * d_time, glm::vec3(0, 1, 0), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
-			window.GetCurrentCamera().RotateXY(My::Camera::Default::Angle * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().RotateXY(My::Camera::Default::Angle * d_time);
+			else rotateLight(light_index, My::Camera::Default::Angle * d_time, glm::vec3(0, 0, 1), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
-			window.GetCurrentCamera().RotateXY(-My::Camera::Default::Angle * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().RotateXY(-My::Camera::Default::Angle * d_time);
+			else rotateLight(light_index, -My::Camera::Default::Angle * d_time, glm::vec3(0, 0, 1), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-			window.GetCurrentCamera().MoveXZ(My::Camera::Default::Step * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().MoveXZ(My::Camera::Default::Step * d_time);
+			else moveLight(light_index, glm::vec3(1, 0, 0) * (My::Camera::Default::Step * d_time), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-			window.GetCurrentCamera().MoveXZ(-My::Camera::Default::Step * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().MoveXZ(-My::Camera::Default::Step * d_time);
+			else moveLight(light_index, glm::vec3(-1, 0, 0) * (My::Camera::Default::Step * d_time), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-			window.GetCurrentCamera().MoveXY(My::Camera::Default::Step * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().MoveXY(My::Camera::Default::Step * d_time);
+			else moveLight(light_index, glm::vec3(0, 0, 1) * (My::Camera::Default::Step * d_time), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-			window.GetCurrentCamera().MoveXY(-My::Camera::Default::Step * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().MoveXY(-My::Camera::Default::Step * d_time);
+			else moveLight(light_index, glm::vec3(0, 0, -1) * (My::Camera::Default::Step * d_time), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
-			window.GetCurrentCamera().MoveYZ(-My::Camera::Default::Step * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().MoveYZ(-My::Camera::Default::Step * d_time);
+			else moveLight(light_index, glm::vec3(0, -1, 0) * (My::Camera::Default::Step * d_time), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
-			window.GetCurrentCamera().MoveYZ(My::Camera::Default::Step * d_time);
+			if (light_index == 1)
+				window.GetCurrentCamera().MoveYZ(My::Camera::Default::Step * d_time);
+			else moveLight(light_index, glm::vec3(0, 1, 0) * (My::Camera::Default::Step * d_time), &window);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 			window.GetCurrentCamera().Reset();
 		//window.GetCurrentCamera().RotateYZ(My::Camera::Default::Angle * (mouse_y - sf::Mouse::getPosition().y) * sensativity);
@@ -254,11 +337,12 @@ int main() {
 		//sf::Mouse::setPosition(sf::Vector2i(mouse_x, mouse_y));
 		glm::vec3 c_pos = window.GetCurrentCamera().GetEye();
 		glm::vec3 c_dir = window.GetCurrentCamera().GetDirection();
+		//text->SetText(std::to_string(c_time));
 		window.GetLightSource(1).GetParameters().SpotDirection = { c_dir.x, c_dir.y, c_dir.z };
 		window.GetLightSource(1).GetParameters().Position = { c_pos.x, c_pos.y, c_pos.z, 1 };
 		window.GetDrawableAs<My::Figures::Transformable>(12)->Rotate(0.001 * d_time, glm::vec3(0, 0, 1));
 		window.GetDrawableAs<My::Figures::Transformable>(13)->Rotate(-0.001 * d_time, glm::vec3(0, 0, 1));
 		window.Display();
 	}
-	return 0;
+	//return 0;
 }

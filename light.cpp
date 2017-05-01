@@ -36,11 +36,12 @@ typename My::Lights::LightSource::Parameters& My::Lights::LightSource::GetParame
 }
 
 void My::Lights::LightSource::Use(Program* program) {
+	glm::vec3 direction = glm::vec3(rotation * glm::vec4(parameters.SpotDirection, 0));
 	glLightfv(index, GL_AMBIENT, glm::value_ptr(enabled ? parameters.Ambient : glm::vec4(0)));
 	glLightfv(index, GL_DIFFUSE, glm::value_ptr(parameters.Diffuse));
 	glLightfv(index, GL_SPECULAR, glm::value_ptr(parameters.Specular));
-	glLightfv(index, GL_POSITION, glm::value_ptr(enabled ? parameters.Position : glm::vec4(0)));
-	glLightfv(index, GL_SPOT_DIRECTION, glm::value_ptr(parameters.SpotDirection));
+	glLightfv(index, GL_POSITION, glm::value_ptr(enabled ?  translation * parameters.Position : glm::vec4(0)));
+	glLightfv(index, GL_SPOT_DIRECTION, glm::value_ptr(direction));
 	glLightfv(index, GL_SPOT_CUTOFF, (GLfloat*)&parameters.SpotCutoff);
 	glLightfv(index, GL_SPOT_EXPONENT, (GLfloat*)&parameters.SpotExponent);
 	glLightfv(index, GL_CONSTANT_ATTENUATION, (GLfloat*)&parameters.ConstantAttenuation);
