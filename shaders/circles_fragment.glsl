@@ -23,7 +23,7 @@ vec4 cond_color(bool cond) {
 
 vec4 circles() {
     vec2 pos = texture_pos * scale;
-    float r = scale / size / 4;
+    float r = size / 4;
     vec2 node = vec2(0);
     if (type >= 0 && type < 4) {
         node = round(pos / size) * size;
