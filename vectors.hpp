@@ -114,7 +114,7 @@ namespace My {
 
 		template<typename T, typename V, typename F>
 		T ApplyFunc(T first, V second, F func) {
-			for (size_t i = 0; i < Sizes::Size<T>::DimSize; ++i)
+			for (size_t i = 0; i < T::Size; ++i)
 				func(first, second, i);
 			return first;
 		}
@@ -166,6 +166,12 @@ namespace My {
 			typename V = std::enable_if<std::negation<std::is_same<T, V>::value>>::type>
 		T& operator-=(T& to, const V& from) {
 			return to = ApplyFunc(to, from, [](T& a, V& b, size_t i) { *(&a.x + i) += b; });
+		}
+
+		template <typename T = std::enable_if<std::is_base_of<BaseVector<typename T::value_type, T::Size>, T>::value>::type,
+			typename V = std::enable_if<std::negation<std::is_same<T, V>::value>>::type>
+			T& operator*=(T& to, const V& from) {
+			return to = ApplyFunc(to, from, [](T& a, V& b, size_t i) { *(&a.x + i) *= b; });
 		}
 
 	}// namespace Vectors

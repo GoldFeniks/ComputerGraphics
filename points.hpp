@@ -81,7 +81,7 @@ namespace My {
 				: BasePoint(Vectors::CombineVectors<T>(Point, Normal, Texture, Tangent, Bitangent)) {
 			};
 			Point3NormTexTanBitan(T x, T y, T z, T nx, T ny, T nz, T tx, T ty, T tax, T tay, T taz, T btax, T btay, T btaz)
-				: BasePoint({ x, y, z, nx, ny, nz, tx, ty, tz, tax, tay, taz, btax, btay, btaz }) {
+				: BasePoint({ x, y, z, nx, ny, nz, tx, ty, tax, tay, taz, btax, btay, btaz }) {
 			};
 
 		};

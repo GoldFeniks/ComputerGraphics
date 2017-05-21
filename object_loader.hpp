@@ -150,8 +150,6 @@ namespace My {
 			return result;
 		}
 
-	private:
-
 		struct Texture {
 			
 			int width, height;
@@ -202,6 +200,8 @@ namespace My {
 			}
 
 		};
+
+		private:
 
 		Assimp::Importer* importer = nullptr;
 		const aiScene* scene = nullptr;

@@ -39,6 +39,7 @@ namespace My {
 			void SetType(Type);
 			Type GetType();
 			bool Toggle();
+			bool IsEnabled();
 
 		private:
 

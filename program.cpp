@@ -14,7 +14,7 @@ My::Program::Program(Program&& other) {
 }
 
 void My::Program::SetShader(std::string path, GLuint type) {
-	std::string s = My::ReadFile(path);
+	std::string s = My::Utils::ReadFile(path);
 	const char* sourseCode = s.c_str();
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &sourseCode, NULL);

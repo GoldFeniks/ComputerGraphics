@@ -84,3 +84,7 @@ bool My::Lights::LightSource::Toggle() {
 	return enabled = !enabled;
 }
 
+bool My::Lights::LightSource::IsEnabled() {
+	return enabled;
+}
+

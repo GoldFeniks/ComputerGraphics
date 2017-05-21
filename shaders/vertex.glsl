@@ -21,15 +21,14 @@ void main() {
     gl_PointSize = 10;
     gl_Position = projection * view * model * vec4(position, 1);
     vertex_pos = vec3(model * vec4(position, 1));
-    mat3 normal_matrix = mat3(transpose(inverse(model)));
+    mat3 normal_matrix = transpose(inverse(mat3(model)));
     normal = normalize(normal_matrix * vertex_normal);
     texture_pos = texture_position;
     vec3 T = normalize(normal_matrix * vertex_tangent);
     vec3 B = normalize(normal_matrix * vertex_bitangent);
     vec3 N = normalize(normal_matrix * vertex_normal);
-    T = normalize(T - dot(T, N) * N);
-    if (dot(cross(N, T), B) < 0) {
+    if (dot(cross(T, B), N) < 0) {
         T = T * -1;
     }
-    TBN = transpose(mat3(T, B, N));
+    TBN = mat3(T, B, N);
 }

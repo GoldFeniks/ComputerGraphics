@@ -276,7 +276,7 @@ namespace My {
 			void loadTextures() {
 				loadTexture(DiffTexture, 0, program->DiffuseTextureAttribute, program->HasDiffuseTextureAttribute);
 				loadTexture(SpecTexture, 1, program->SpecularTextureAttribute, program->HasSpecularTextureAttribute);
-				loadTexture(NormTexture, 2, program->NormalAttribute, program->HasNormalTextureAttribute);
+				loadTexture(NormTexture, 2, program->NormalTextureAttribute, program->HasNormalTextureAttribute);
 			}
 
 			virtual Drawable* copy() const override {
