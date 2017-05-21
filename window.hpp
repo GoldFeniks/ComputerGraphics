@@ -30,6 +30,10 @@ namespace My {
 		GLdouble Ratio();
 		sf::Vector2u GetSize();
 		Camera& GetCamera(size_t = 0);
+		void IncScale(GLfloat step);
+		void IncSize(GLfloat step);
+		void SetType(GLint n_type);
+		void IncPeriod(GLint step);
 
 	private:
 
@@ -37,6 +41,9 @@ namespace My {
 		std::vector<Camera> cameras;
 		std::vector<Lights::LightSource> lights;
 		size_t camera_index = 0;
+		sf::Clock clock;
+		GLint type = 0, period = 2500;
+		GLfloat scale = 20, size = 2;
 
 	};
 

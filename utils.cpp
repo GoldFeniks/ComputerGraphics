@@ -13,7 +13,7 @@ std::string My::Utils::ReadFile(std::string path) {
 	return out;
 }
 //TODO: return My::Scene::Texture
-GLuint My::Utils::NoiseTexture(GLuint width, GLuint height, GLfloat scale, GLuint seed) {
+GLuint My::Utils::NoiseTexture(GLuint width, GLuint height, GLfloat scale, bool perlin, GLuint seed) {
 	GLuint id;
 	glGenTextures(1, &id);
 	std::srand(seed);
@@ -23,7 +23,10 @@ GLuint My::Utils::NoiseTexture(GLuint width, GLuint height, GLfloat scale, GLuin
 	std::vector<GLfloat> vals(9, 0);
 	for (size_t i = 0; i < height; ++i)
 		for (size_t j = 0; j < width; ++j) 
-			normals.push_back((glm::perlin(point + glm::vec2(i * step, j * step)) + 1) / 2.f);
+			if (perlin)
+				normals.push_back((glm::perlin(point + glm::vec2(i * step, j * step)) + 1) / 2.f);
+			else 
+				normals.push_back((glm::simplex(point + glm::vec2(i * step, j * step)) + 1) / 2.f);
 	glBindTexture(GL_TEXTURE_2D, id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, normals.data());
 	glGenerateMipmap(GL_TEXTURE_2D);

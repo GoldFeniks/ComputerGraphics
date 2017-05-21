@@ -23,55 +23,18 @@ uniform float size;
 vec4 texdiff = vec4(132.0 / 256, 59.0 / 256, 10.0 / 256, 1);
 vec4 texspec = vec4(1);
 
-float pi = 3.141592653589793;
-
 float calc(float a) {
     return a * 2 - 1;
 }
 
-vec2 nearest_node(vec2 vec, float num) {
-    return vec2(round(vec.x / num), round(vec.y / num));
-}
-
-vec2 bottom_left_node(vec2 vec, float num) {
-    return vec2(floor(vec.x / num), floor(vec.y / num));
-}
-
-vec4 squares(int anim_style) {
-    float nsize = size;
-    vec4 c1 = vec4(1), c2 = vec4(0, 0, 0, 1);
-    if (anim_style == 0)
-        nsize = max(0.1, size * sin(pi * (time % 5000) / 5000));
-    if (anim_style == 1) {
-        float color1 = sin(pi * (time % 5000) / 5000);
-        float color2 = sin(pi * ((time + 2500) % 5000) / 5000);
-        uint t = time % 15000;
-        if (time % 1000 < 500) {
-            c1 = vec4(color1, 0, 0, 1);//color1 * int(t >= 5000 && t < 10000), color1 * int(t > 10000), 1);
-            c2 = vec4(0, 0, color2, 1);
-        }
-        else {
-            c2 = vec4(color1, 0, 0, 1);//color1 * int(t >= 5000 && t < 10000), color1 * int(t > 10000), 1);
-            c1 = vec4(0, 0, color2, 1);
-        }
-    }
-    vec2 node = bottom_left_node(texture_pos * scale, nsize);
-    if (int(node.x) % 2 == int(node.y) % 2)
-        return c1;
-    else
-        return c2;
-}
-
-
 void main() {
-    texdiff = squares(0);
     vec3 new_normal = normal;
     vec3 view_dir = normalize(camera_pos - vertex_pos);
     if (has_norm_texture) {
-        vec3 n = vec3(calc(texture(norm, texture_pos - vec2(0.01, 0)).r) -
-            calc(texture(norm, texture_pos + vec2(0.01, 0)).r),
-            calc(texture(norm, texture_pos - vec2(0, 0.01)).r) -
-            calc(texture(norm, texture_pos + vec2(0, 0.01)).r), 1);
+        vec3 n = vec3(calc(texture(norm, texture_pos - vec2(0.003, 0)).r) -
+            calc(texture(norm, texture_pos + vec2(0.003, 0)).r),
+            calc(texture(norm, texture_pos - vec2(0, 0.003)).r) -
+            calc(texture(norm, texture_pos + vec2(0, 0.003)).r), 1);
         new_normal = normalize(n);
         //new_normal = normalize(texture(norm, texture_pos).xyz);
         //new_normal = normalize(new_normal * 2.0 - 1.0);   

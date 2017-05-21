@@ -1,4 +1,6 @@
+#define _USE_MATH_DEFINES
 #include "window.hpp"
+#include <cmath>
 
 My::Window::Window(size_t width, size_t height, std::string title, sf::Uint32 style, sf::ContextSettings context_settings) {
 	AddCamera(Camera());
@@ -11,7 +13,7 @@ My::Window::Window(size_t width, size_t height, std::string title, sf::Uint32 st
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_PROGRAM_POINT_SIZE);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -72,6 +74,11 @@ void My::Window::Display() {
 		program->LoadMVP();
 		glUniform3f(glGetUniformLocation(program->Id, program->CameraAttribute.c_str()), c.GetEye().x, c.GetEye().y, c.GetEye().z);
 		glUniform1i(glGetUniformLocation(program->Id, program->LightCountAttribute.c_str()), lights.size());
+		glUniform1ui(program->GetUniformLocation("time"), clock.getElapsedTime().asMilliseconds());
+		glUniform1f(program->GetUniformLocation("scale"), scale * M_PI);
+		glUniform1f(program->GetUniformLocation("size"), size * M_PI);
+		glUniform1ui(program->GetUniformLocation("type"), type);
+		glUniform1ui(program->GetUniformLocation("period"), period);
 		for (std::vector<Lights::LightSource>::iterator l = lights.begin(); l != lights.end(); ++l) {
 			l->Use(program);
 		}
@@ -95,4 +102,23 @@ sf::Vector2u My::Window::GetSize() {
 
 My::Camera& My::Window::GetCamera(size_t index) {
 	return cameras[index];
+}
+
+void My::Window::IncScale(GLfloat step) {
+	scale += step;
+	scale = std::max(scale, std::abs(step));
+}
+
+void My::Window::IncSize(GLfloat step) {
+	size += step;
+	size = std::max(std::abs(step), size);
+}
+
+void My::Window::SetType(GLint n_type) {
+	type = n_type;
+}
+
+void My::Window::IncPeriod(GLint step) {
+	period += step;
+	period = std::max(std::abs(step), period);
 }
